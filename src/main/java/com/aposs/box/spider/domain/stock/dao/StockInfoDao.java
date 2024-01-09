@@ -7,6 +7,7 @@ import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Aaron
@@ -24,7 +25,7 @@ public class StockInfoDao {
      * @param endCode   结束编码
      * @return
      */
-    public List<StockInfo> getStockInfoRange(String startCode, String endCode) {
+    public List<StockInfo> getStockInfoRange(String startCode, String endCode, Integer idStart, Integer idEnd) {
         Example example = new Example(StockInfo.class);
         Example.Criteria criteria = example.createCriteria();
         if (StringUtils.isNotEmpty(startCode)) {
@@ -32,6 +33,12 @@ public class StockInfoDao {
         }
         if (StringUtils.isNotEmpty(endCode)) {
             criteria.andLessThanOrEqualTo("code", endCode);
+        }
+        if (Objects.nonNull(idStart)) {
+            criteria.andGreaterThanOrEqualTo("id", idStart);
+        }
+        if (Objects.nonNull(idEnd)) {
+            criteria.andLessThanOrEqualTo("id", idEnd);
         }
         return stockInfoMapper.selectByExample(example);
     }

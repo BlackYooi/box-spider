@@ -9,10 +9,10 @@
     </resultMap>
 
     <select id="selectMaxDateRecord" resultType="java.time.LocalDate">
-        select max(trading_date) from tbl_trading_date_record ;
+        select max(trading_date) from tbl_stock_trading_date_record ;
     </select>
     <select id="selectByTradingDate" resultMap="tradingDateRecordMapper">
-        select id,trading_date from tbl_trading_date_record where trading_date = #{tradingDate} limit 1;
+        select id,trading_date from tbl_stock_trading_date_record where trading_date = #{tradingDate} limit 1;
     </select>
 
 </mapper>

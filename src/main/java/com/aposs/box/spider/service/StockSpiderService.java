@@ -10,6 +10,7 @@ import com.aposs.box.spider.domain.stock.entity.StockInfo;
 import com.aposs.box.spider.domain.stock.entity.TradingDateRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.mongodb.core.aggregation.ArrayOperators;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import us.codecraft.webmagic.Spider;
@@ -56,9 +57,8 @@ public class StockSpiderService {
         Spider.create(stockInfoProcessor).addUrl(url).addPipeline(stockInfoPipeline).run();
         logger.info("----------- runStockInfoSpider finished! ---------------");
     }
-    @Async
     public void runKlineSpider(Integer limit) {
-        runKlineSpider(limit, null, null);
+        runKlineSpider(limit, null, null, null, null);
     }
 
     /**
@@ -68,13 +68,16 @@ public class StockSpiderService {
      * @param startCode
      * @param endCode
      */
-    @Async
-    public void runKlineSpider(Integer limit, String startCode, String endCode) {
+    public void runKlineSpider(Integer limit, String startCode, String endCode, Integer idStart, Integer idEnd) {
         logger.info("------------ start runKlineSpider ... --------------");
-        List<StockInfo> stockInfoList = stockInfoDao.getStockInfoRange(startCode, endCode);
-        String[] urls = stockInfoList.stream().map(stockInfo ->
-                jointKlineUrl(stockInfo.getCode(), limit)).toArray(String[]::new);
-        Spider.create(klineProcessor).addPipeline(klinePipeline).addUrl(urls).run();
+        List<StockInfo> stockInfoList = stockInfoDao.getStockInfoRange(startCode, endCode, idStart, idEnd);
+        String[] urls = stockInfoList.stream()
+                .map(stockInfo -> jointKlineUrl(stockInfo.getCode(), limit))
+                .toArray(String[]::new);
+        Spider.create(klineProcessor)
+                .addPipeline(klinePipeline)
+                .addUrl(urls)
+                .run();
         logger.info("----------- runKlineSpider finished! ---------------");
     }
 
