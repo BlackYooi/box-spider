@@ -66,7 +66,7 @@ public class StockTest {
 
     @Test
     public void initK() {
-        stockSpiderService.runKlineSpider(250, null, null, 4129, 4129);
+        stockSpiderService.runKlineSpider(2, null, null, null, null);
     }
 
 }

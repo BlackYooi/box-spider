@@ -2,8 +2,14 @@ package com.aposs.box.spider.domain.stock;
 
 import com.alibaba.fastjson.JSONObject;
 import com.aposs.box.spider.config.MyPageProcessor;
+import com.aposs.box.spider.domain.stock.dao.StockInfoDao;
 import com.aposs.box.spider.domain.stock.dao.TradingDateRecordMapper;
+import com.aposs.box.spider.domain.stock.entity.Kline;
+import com.aposs.box.spider.domain.stock.entity.StockInfo;
 import com.aposs.box.spider.domain.stock.entity.TradingDateRecord;
+import com.aposs.box.spider.domain.stock.processor.KlineProcessor;
+import com.aposs.box.spider.service.StockSpiderService;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -18,6 +24,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 个股实时行情
@@ -32,6 +39,15 @@ public class StockRealTimeSpider {
 
     @Resource
     private TradingDateRecordMapper tradingDateRecordMapper;
+
+    @Resource
+    private StockInfoDao stockInfoDao;
+
+    @Resource
+    private StockSpiderService stockSpiderService;
+
+    @Resource
+    private KlineProcessor klineProcessor;
 
 
     /**
@@ -52,7 +68,10 @@ public class StockRealTimeSpider {
      */
     public void checkAndUpdateTradingDate() {
         String url = getUrl("300059");
-        Spider.create(new StockRealTimePageProcessor()).addUrl(url).addPipeline(new UpdateTradingDatePipeline()).run();
+        Spider.create(new StockRealTimePageProcessor())
+                .addUrl(url)
+                .addPipeline(new UpdateTradingDatePipeline())
+                .run();
     }
 
     /**
@@ -115,30 +134,75 @@ public class StockRealTimeSpider {
 
         @Override
         public void process(ResultItems resultItems, Task task) {
-            JSONObject dataJson = resultItems.get("data");
-            Boolean isOpen = "2".equals(dataJson.getString("f292"));
-            if (isOpen) {
-                Long time = dataJson.getLong("f86");
-                // 行情时间
-                LocalDate stockDate = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).toLocalDate();
-
-
-                LocalDate todayLocalDate = LocalDate.now();
-
-                if (todayLocalDate.compareTo(stockDate) == 0) {
-                    TradingDateRecord record = new TradingDateRecord();
-                    record.setTradingDate(todayLocalDate);
-                    // 检测到今日开市状态
-                    TradingDateRecord select = tradingDateRecordMapper.selectByTradingDate(todayLocalDate);
-                    if (select == null) {
-                        tradingDateRecordMapper.insert(record);
-                    }
-                    logger.info("UpdateTradingDatePipeline success! Today is Trading date!");
-                }
-            } else {
-                logger.info("UpdateTradingDatePipeline success! Today is not Trading date!");
+            // 开市 TODO 状态码常量好像变了
+            handlerOpen(resultItems, task);
+            // 闭市的话直接验证最后一条数据是否是今天的即可
+            LocalDate todayLocalDate = LocalDate.now();
+            TradingDateRecord select = tradingDateRecordMapper.selectByTradingDate(todayLocalDate);
+            if (select == null) {
+                logger.warn("check trading");
+                handlerClose(resultItems, task);
             }
         }
+    }
+
+    private void handlerOpen(ResultItems resultItems, Task task) {
+        JSONObject dataJson = resultItems.get("data");
+        Boolean isOpen = "2".equals(dataJson.getString("f292"));
+        if (isOpen) {
+            Long time = dataJson.getLong("f86");
+            // 行情时间
+            LocalDate stockDate = Instant.ofEpochSecond(time).atZone(ZoneId.systemDefault()).toLocalDate();
+
+
+            LocalDate todayLocalDate = LocalDate.now();
+
+            if (todayLocalDate.compareTo(stockDate) == 0) {
+                TradingDateRecord record = new TradingDateRecord();
+                record.setTradingDate(todayLocalDate);
+                // 检测到今日开市状态
+                TradingDateRecord select = tradingDateRecordMapper.selectByTradingDate(todayLocalDate);
+                if (select == null) {
+                    tradingDateRecordMapper.insert(record);
+                }
+                logger.info("UpdateTradingDatePipeline success! Today is Trading date!");
+            }
+        } else {
+            logger.info("UpdateTradingDatePipeline success! Today is not Trading date!");
+        }
+    }
+
+    private void handlerClose(ResultItems resultItems, Task task) {
+        String urls = stockSpiderService.jointKlineUrl("300059", 1);
+        Spider.create(klineProcessor)
+                .addPipeline(new Pipeline() {
+                    @Override
+                    public void process(ResultItems resultItems, Task task) {
+                        if (resultItems.isSkip()) {
+                            return;
+                        }
+                        List<Kline> dataList = resultItems.get("dataList");
+                        if (CollectionUtils.isEmpty(dataList)) {
+                            return;
+                        }
+                        LocalDate tradingDate = dataList.get(0).getTradingDate();
+                        LocalDate todayLocalDate = LocalDate.now();
+                        if (todayLocalDate.compareTo(tradingDate) == 0) {
+                            TradingDateRecord record = new TradingDateRecord();
+                            record.setTradingDate(todayLocalDate);
+                            // 检测到今日开市状态
+                            TradingDateRecord select = tradingDateRecordMapper.selectByTradingDate(todayLocalDate);
+                            if (select == null) {
+                                tradingDateRecordMapper.insert(record);
+                            }
+                            logger.info("UpdateTradingDatePipeline success! Today is Trading date!");
+                        } else {
+                            logger.info("UpdateTradingDatePipeline success! Today is not Trading date!");
+                        }
+                    }
+                })
+                .addUrl(urls)
+                .run();
     }
 }
 

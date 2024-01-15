@@ -97,7 +97,7 @@ public class StockSpiderService {
      * @param code   股票编码
      * @param limit  获取记录数，默认250
      */
-    private String jointKlineUrl(String code, Integer limit) {
+    public String jointKlineUrl(String code, Integer limit) {
         // 市场前缀，0 深证、北证，1 上证
         String prefix = code.startsWith("60") ? "1" : "0";
         String secid =  prefix + "." + code;
