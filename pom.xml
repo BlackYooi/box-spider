@@ -12,8 +12,8 @@
     </parent>
 
     <groupId>com.aposs.box</groupId>
-    <artifactId>box-spider</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>trade</artifactId>
+    <version>23-january</version>
 
     <properties>
         <java.version>1.8</java.version>
