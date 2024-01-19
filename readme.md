@@ -46,13 +46,13 @@ box系列爬虫项目
 - 开始爬取股票k线数据前，需要确认tbl_stock_info表有数据，因为程序是依赖此表中的股票数据执行爬取任务的；
 
 - 初始化或更新 tbl_stock_info 表的数据入口为：
-> com.aposs.box.spider.service.StockSpiderService.runStockInfoSpider
+> com.black.trade.access.service.StockSpiderService.runStockInfoSpider
 
 - 也可以选择执行 doc/tbl_stock_info.sql 脚本初始化 tbl_stock_info 表数据，但是可能漏掉新股
 
 ### 2.3.2 爬取A股所有股票250日行情
 - 以下方法为爬取入口为，传入参数 250 即可开始爬取所有股票250日行情
-> com.aposs.box.spider.service.StockSpiderService.runKlineSpider(java.lang.Integer)
+> com.black.trade.access.service.StockSpiderService.runKlineSpider(java.lang.Integer)
 
 ## 2.4 通用爬虫（包括各种赛事、新闻爬取）
 1. 初始化爬虫元数据表 tbl_spider_mate_data（数据库脚本：doc/tbl_spider_mate_data.sql）
