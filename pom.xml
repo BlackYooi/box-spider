@@ -18,6 +18,7 @@
     <modules>
         <module>trade-core</module>
         <module>trade-data-access</module>
+        <module>trade-default-external</module>
     </modules>
 
     <properties>
