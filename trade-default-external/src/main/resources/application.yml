@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    dynamic:
+      primary: starrocks
+      datasource:
+        starrocks:
+          url: jdbc:mysql://localhost:9030/trade?useSSL=false&serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=UTF-8&rewriteBatchedStatements=true
+          username: root
+          password:
+          driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-init-sql: SET NAMES utf8mb4

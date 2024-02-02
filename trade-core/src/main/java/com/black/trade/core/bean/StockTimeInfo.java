@@ -14,7 +14,8 @@ public class StockTimeInfo {
     @Getter
     private List<Price> prices;
 
-    public List<Price> prices(LocalDateTime after, LocalDateTime before) {
-        return new ArrayList<>();
+    public StockTimeInfo(StockInfo stockInfo, List<Price> prices) {
+        this.stockInfo = stockInfo;
+        this.prices = prices;
     }
 }

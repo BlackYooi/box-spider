@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.black.trade.external.cn.mapper.StockCnKLineMapper">
+
+    <select id="tradeDay" resultType="java.lang.String">
+        SELECT s_date from cn_stock_trade_day where s_date <![CDATA[<=]]> #{currentTime} order by s_date DESC limit #{limit}
+    </select>
+
+</mapper>

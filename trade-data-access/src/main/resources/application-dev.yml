@@ -1,9 +1,0 @@
-spring:
-  data:
-    mongodb:
-      uri: mongodb://box:123456@127.0.0.1:27017/box
-  datasource:
-    url: jdbc:mysql://127.0.0.1:33066/trade?characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    password: qq85689049
-    username: root
